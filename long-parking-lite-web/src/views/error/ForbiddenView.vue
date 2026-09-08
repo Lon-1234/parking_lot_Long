@@ -1,0 +1,2 @@
+<script setup lang="ts">import { useAuthStore } from '@/stores/auth'; import { ROLE_HOME } from '@/constants/routes'; const auth=useAuthStore(); const target=auth.userInfo?ROLE_HOME[auth.userInfo.roleCode]:'/'</script>
+<template><div class="page-shell"><el-result icon="warning" title="403" sub-title="当前账号没有访问此页面的权限"><template #extra><RouterLink :to="target"><el-button type="primary">返回可访问首页</el-button></RouterLink></template></el-result></div></template>

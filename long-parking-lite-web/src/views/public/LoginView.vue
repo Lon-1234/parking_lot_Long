@@ -1,0 +1,16 @@
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { Lock, User } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
+import { ROLE_HOME } from '@/constants/routes'
+
+const auth = useAuthStore(); const router = useRouter(); const route = useRoute(); const formRef = ref<FormInstance>(); const loading = ref(false); const form = reactive({ username: 'user', password: '123456' })
+const rules: FormRules = { username: [{ required: true, message: '请输入用户名', trigger: 'blur' }], password: [{ required: true, min: 6, message: '密码至少 6 位', trigger: 'blur' }] }
+function useAccount(username: string) { form.username = username; form.password = '123456' }
+async function submit() { if (!await formRef.value?.validate()) return; loading.value = true; try { const result = await auth.login(form); ElMessage.success('登录成功'); const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ROLE_HOME[result.userInfo.roleCode]; await router.replace(redirect) } finally { loading.value = false } }
+</script>
+<template><div class="auth-page"><section class="auth-side"><span>LONG PARKING</span><h1>停车管理，<br>从清晰开始。</h1><p>三个角色，一套连贯体验。Mock 模式下所有核心状态都会持久化。</p></section><section class="auth-card"><h2>欢迎登录</h2><p>使用账号密码进入对应工作台</p><el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent="submit"><el-form-item label="用户名" prop="username"><el-input v-model="form.username" size="large" :prefix-icon="User" /></el-form-item><el-form-item label="密码" prop="password"><el-input v-model="form.password" size="large" type="password" show-password :prefix-icon="Lock" @keyup.enter="submit" /></el-form-item><el-button type="primary" size="large" class="full-width" :loading="loading" @click="submit">登录</el-button></el-form><div class="quick"><span>测试账号（密码均为 123456）</span><el-button-group><el-button size="small" @click="useAccount('user')">USER</el-button><el-button size="small" @click="useAccount('operator')">OPERATOR</el-button><el-button size="small" @click="useAccount('admin')">ADMIN</el-button></el-button-group></div><p class="register">还没有账号？<RouterLink to="/register">注册车主账号</RouterLink></p></section></div></template>
+<style scoped lang="scss">.auth-page{min-height:calc(100vh - 136px);display:grid;grid-template-columns:1fr 1fr}.auth-side{padding:12%;display:flex;flex-direction:column;justify-content:center;color:white;background:linear-gradient(145deg,#0e4d43,#1f7566)}.auth-side span{letter-spacing:3px;color:#a6d7ce}.auth-side h1{font-size:48px;line-height:1.2}.auth-side p{max-width:480px;color:#c3ded9;line-height:1.8}.auth-card{width:min(430px,calc(100% - 40px));margin:auto;padding:35px;border-radius:20px;background:white;box-shadow:0 20px 60px rgba(25,55,70,.1)}.auth-card h2{font-size:28px;margin:0}.auth-card>p{color:var(--muted);margin-bottom:28px}.quick{display:grid;gap:9px;margin-top:22px;padding:14px;background:#f4f7fa;border-radius:10px}.quick span{font-size:12px;color:var(--muted)}.register{text-align:center!important;font-size:14px}.register a{color:var(--brand)}@media(max-width:760px){.auth-page{grid-template-columns:1fr}.auth-side{display:none}.auth-card{margin:30px auto}}</style>

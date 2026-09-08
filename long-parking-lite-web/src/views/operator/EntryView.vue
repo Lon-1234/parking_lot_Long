@@ -1,0 +1,19 @@
+<script setup lang="ts">
+import { reactive, ref, onMounted, watch } from 'vue'
+import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { enterVehicle } from '@/api/operator'
+import { getParkingLotDetail, getParkingLots } from '@/api/public'
+import type { ParkingLot, ParkingLotDetail, VehicleEntryResult } from '@/types/parking'
+import ParkingSpaceGrid from '@/components/parking/ParkingSpaceGrid.vue'
+import { formatDateTime } from '@/utils/format'
+
+const formRef=ref<FormInstance>();const lots=ref<ParkingLot[]>([]);const detail=ref<ParkingLotDetail>();const submitting=ref(false);const result=ref<VehicleEntryResult>();const form=reactive({plateNumber:'京AD6688',parkingLotId:undefined as number|undefined,spaceId:undefined as number|undefined})
+const rules:FormRules={plateNumber:[{required:true,pattern:/^[\u4e00-\u9fa5][A-Z][A-Z0-9]{5,6}$/,message:'请输入有效车牌',trigger:'blur'}],parkingLotId:[{required:true,message:'请选择营业停车场',trigger:'change'}],spaceId:[{required:true,message:'请选择空闲车位',trigger:'change'}]}
+watch(()=>form.parkingLotId,async(id)=>{form.spaceId=undefined;detail.value=id?await getParkingLotDetail(id):undefined})
+async function submit(){if(submitting.value||!await formRef.value?.validate())return;submitting.value=true;try{result.value=await enterVehicle({plateNumber:form.plateNumber,parkingLotId:form.parkingLotId!,spaceId:form.spaceId!});ElMessage.success('车辆入场成功');if(form.parkingLotId)detail.value=await getParkingLotDetail(form.parkingLotId)}finally{submitting.value=false}}
+function reset(){result.value=undefined;form.plateNumber='';form.spaceId=undefined}
+onMounted(async()=>{lots.value=(await getParkingLots({status:1,pageSize:50})).list})
+</script>
+<template><div><h1 class="page-title">车辆入场</h1><p class="page-subtitle">登记车牌，选择营业停车场与空闲车位；提交后立即占用车位。</p><div class="entry-grid"><section class="panel"><el-form ref="formRef" :model="form" :rules="rules" label-position="top"><el-form-item label="车牌号码" prop="plateNumber"><el-input v-model="form.plateNumber" maxlength="8" placeholder="京A12345"/></el-form-item><el-form-item label="停车场" prop="parkingLotId"><el-select v-model="form.parkingLotId" class="full-width" placeholder="请选择"><el-option v-for="lot in lots" :key="lot.id" :label="`${lot.lotName}（空闲 ${lot.availableSpaces}）`" :value="lot.id"/></el-select></el-form-item><el-form-item label="空闲车位" prop="spaceId"><ParkingSpaceGrid v-if="detail" v-model="form.spaceId" :spaces="detail.spaces" selectable class="full-width"/><el-empty v-else description="请先选择停车场" class="full-width"/></el-form-item><el-button type="primary" size="large" class="full-width" :loading="submitting" :disabled="submitting" @click="submit">确认入场</el-button></el-form></section><section v-if="result" class="panel result"><el-result icon="success" title="入场成功" :sub-title="result.recordNo"><template #extra><el-descriptions :column="1" border><el-descriptions-item label="车牌">{{ result.plateNumber }}</el-descriptions-item><el-descriptions-item label="停车场">{{ result.parkingLotName }}</el-descriptions-item><el-descriptions-item label="车位">{{ result.spaceCode }}</el-descriptions-item><el-descriptions-item label="入场时间">{{ formatDateTime(result.entryTime) }}</el-descriptions-item><el-descriptions-item label="月租车辆">{{ result.monthlyVehicle?'是':'否' }}</el-descriptions-item></el-descriptions><el-button class="next" @click="reset">继续办理</el-button></template></el-result></section><section v-else class="panel tips"><h2>入场规则</h2><ul><li>同一车牌不能重复在场</li><li>停车场必须营业，车位必须空闲</li><li>停用车辆不能入场</li><li>有效月租按停车场和有效期自动识别</li></ul></section></div></div></template>
+<style scoped>.entry-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}.tips{align-self:start}.tips li{margin:12px 0;color:var(--muted)}.next{margin-top:18px}@media(max-width:900px){.entry-grid{grid-template-columns:1fr}}</style>

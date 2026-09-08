@@ -1,0 +1,99 @@
+# =====================
+# 前端 (Vue / Node.js)
+# =====================
+# 依赖目录
+node_modules/
+.pnpm-store/
+yarn-error.log*
+npm-debug.log*
+
+# 构建产物
+dist/
+dist-ssr/
+*.local
+*.min.js
+*.min.css
+
+# 环境变量（敏感信息）
+.env.local
+.env.*.local
+.env.production    # 生产环境配置（含真实密钥）
+.env.staging       # 预发布配置（如果敏感）
+
+# 但保留 .env.development（开发用）或 .env.example（模板）
+!.env.example
+!.env.development   # 如果不包含密钥，可提交
+
+# 编辑器/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# Vite 缓存
+.vite/
+
+# =====================
+# 后端 (Spring Boot / Java)
+# =====================
+# 编译输出
+target/
+classes/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# 日志文件
+*.log
+logs/
+
+# 本地配置文件（含数据库密码等）
+application-local.properties
+application-dev-local.properties
+application-*.local.properties
+application-*.local.yml
+bootstrap-local.properties
+
+# Maven / Gradle 本地缓存（一般不需提交，但建议保留构建脚本）
+.mvn/
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar   # 保留 wrapper 的 jar
+
+# STS / Eclipse
+.settings/
+.project
+.classpath
+*.tmp
+
+# 临时文件
+*.tmp
+*.bak
+
+# =====================
+# 通用
+# =====================
+# 操作系统
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# 压缩包
+*.zip
+*.tar.gz
+*.rar
+
+# 敏感数据
+*.p12
+*.pfx
+*.jks
+secrets/
